@@ -1,6 +1,7 @@
 # KafkaToSparkToKudu
 #实时流数据同步
 SparkStreaming消费Kafka消息队列数据,实时写入Kudu列存数据库。
+
 #调用方式
 根据Kafka offset存储方式的不同，调用方式也不同。
 Kafka offset 存储方式有以下三种：
