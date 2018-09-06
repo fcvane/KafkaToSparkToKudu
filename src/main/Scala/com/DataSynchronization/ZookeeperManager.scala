@@ -1,5 +1,9 @@
 package com.DataSynchronization
 
+/**
+  * Auther fcvane
+  * Date 2018/8/30
+  */
 import java.util.Properties
 
 import org.apache.kafka.common.TopicPartition

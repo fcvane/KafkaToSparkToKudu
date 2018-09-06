@@ -1,6 +1,9 @@
 package com.DataSynchronization
 
-
+/**
+  * Auther fcvane
+  * Date 2018/8/30
+  */
 import java.util.Properties
 
 import com.alibaba.fastjson.JSON
@@ -10,9 +13,7 @@ import org.apache.kudu.client.KuduClient
 
 class KuduManager {
 
-
 }
-
 
 object KuduManager {
   /**

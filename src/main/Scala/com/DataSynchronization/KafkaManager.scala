@@ -1,5 +1,10 @@
 package com.DataSynchronization
 
+/**
+  * Auther fcvane
+  * Date 2018/8/30
+  */
+
 import com.alibaba.fastjson.JSON
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
@@ -85,10 +90,10 @@ object KafkaManager {
     //匹配判断
     tableName match {
       case null =>
-        println("2222")
+        //        println("2222")
         break
       case _ =>
-        println("1111")
+        //        println("1111")
         println(kuduClient.tableExists(tableName))
         val kuduTable = kuduClient.openTable(json.getString("table").split("\\.")(1).toLowerCase())
         val schema = kuduTable.getSchema

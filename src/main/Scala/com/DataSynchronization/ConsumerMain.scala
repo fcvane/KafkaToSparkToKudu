@@ -1,6 +1,9 @@
 package com.DataSynchronization
 
-
+/**
+  * Auther fcvane
+  * Date 2018/8/30
+  */
 import java.io.{File, FileWriter}
 import java.sql.Timestamp
 import java.text.{DecimalFormat, SimpleDateFormat}
@@ -37,11 +40,12 @@ object ConsumerMain extends App {
   properties.load(this.getClass.getResourceAsStream("/config.properties"))
   val kuduClient = new KuduClient.KuduClientBuilder(properties.getProperty("kudu.master")).build()
   val topics = properties.getProperty("kafka.topic").split(",").toSet
+  val kafkaBroker = properties.getProperty("kafka.broker")
   val group = "test"
   // 消费者配置
   val kafkaParams = Map(
     // 用于初始化链接到集群的地址
-    "bootstrap.servers" -> "bigdata03:9092,bigdata06:9092,bigdata08:9092",
+    "bootstrap.servers" -> kafkaBroker,
     "key.deserializer" -> classOf[StringDeserializer],
     "value.deserializer" -> classOf[StringDeserializer],
     // 用于标识这个消费者属于哪个消费团体
