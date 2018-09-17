@@ -14,8 +14,8 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kudu.client.KuduClient
 import org.apache.spark
 import org.apache.spark.SparkConf
+import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.kafka010.{CanCommitOffsets, HasOffsetRanges}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -100,7 +100,7 @@ object ConsumerMain extends App {
               total.add(1)
               // kf.dataParseJson(kuduClient, line.value())
               val tup = kd.kuduConnect(line.value())
-              println(s"[ ConsumerMain ] table and current_ts is : $tup")
+              println(s"[ ConsumerMain ] table and current_ts is : ${tup._2},${tup._3}")
               tabName += tup._2
               currentTs += tup._3
             })
@@ -190,49 +190,51 @@ object ConsumerMain extends App {
         fwAppend.close()
         // 新版本Kafka自身保存
         stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-      } else {
-        println(s"[ ConsumerMain ] no data during this time period (${Seconds(5)})")
-        //于HDFS上记录日志
-        val nullTime = timeFormat.format(new Date())
-        val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
-        //val logfile = "/tmp/topics/tbLog" + dateFormat.format(new Date()) + ".log"
-        val logfile = "./files/tbLog" + dateFormat.format(new Date()) + ".log"
-        //        val configuration = new Configuration()
-        //        val configPath = new Path(logfile)
-        //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
-        //        var append: FSDataOutputStream = null;
-        //        if (!fileSystem.exists(configPath)) {
-        //          append = fileSystem.create(configPath)
-        //        } else {
-        //          append = fileSystem.append(configPath)
-        //        }
-        //        append.write(("\n"
-        //          + "基表同步启动时间: " + nullTime + "\n"
-        //          + "基表同步结束时间: " + nullTime + "\n"
-        //          + "基表增量名称遍历: NULL " + "\n"
-        //          + "增量数据同步时间: " + rddTime + "\n"
-        //          + "增量过程同步总数: 0" + "\n"
-        //          + "基表同步数据效率: 0 rec/s" + "\n"
-        //          + "基表写入失败总数: 0" + "\n"
-        //          ).getBytes("UTF-8"))
-        //        append.close()
-        //        fileSystem.close()
-        // 写本地文件系统
-        val fw = new FileWriter(new File(logfile), true)
-        fw.write("\n"
-          + "基表同步启动时间: " + nullTime + "\n"
-          + "基表同步结束时间: " + nullTime + "\n"
-          + "基表增量名称遍历: NULL " + "\n"
-          + "增量数据同步时间: " + rddTime + "\n"
-          + "增量过程同步总数: 0" + "\n"
-          + "基表同步数据效率: 0 rec/s" + "\n"
-          + "基表写入失败总数: 0" + "\n"
-        )
-        fw.close()
-        // 清空数组
-        tabName.clear()
-        currentTs.clear()
       }
+    // 注释
+    //      else {
+    //        println(s"[ ConsumerMain ] no data during this time period (${Seconds(5)})")
+    //        //于HDFS上记录日志
+    //        val nullTime = timeFormat.format(new Date())
+    //        val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
+    //        //val logfile = "/tmp/topics/tbLog" + dateFormat.format(new Date()) + ".log"
+    //        val logfile = "./files/tbLog" + dateFormat.format(new Date()) + ".log"
+    //        //        val configuration = new Configuration()
+    //        //        val configPath = new Path(logfile)
+    //        //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
+    //        //        var append: FSDataOutputStream = null;
+    //        //        if (!fileSystem.exists(configPath)) {
+    //        //          append = fileSystem.create(configPath)
+    //        //        } else {
+    //        //          append = fileSystem.append(configPath)
+    //        //        }
+    //        //        append.write(("\n"
+    //        //          + "基表同步启动时间: " + nullTime + "\n"
+    //        //          + "基表同步结束时间: " + nullTime + "\n"
+    //        //          + "基表增量名称遍历: NULL " + "\n"
+    //        //          + "增量数据同步时间: " + rddTime + "\n"
+    //        //          + "增量过程同步总数: 0" + "\n"
+    //        //          + "基表同步数据效率: 0 rec/s" + "\n"
+    //        //          + "基表写入失败总数: 0" + "\n"
+    //        //          ).getBytes("UTF-8"))
+    //        //        append.close()
+    //        //        fileSystem.close()
+    //        // 写本地文件系统
+    //        val fw = new FileWriter(new File(logfile), true)
+    //        fw.write("\n"
+    //          + "基表同步启动时间: " + nullTime + "\n"
+    //          + "基表同步结束时间: " + nullTime + "\n"
+    //          + "基表增量名称遍历: NULL " + "\n"
+    //          + "增量数据同步时间: " + rddTime + "\n"
+    //          + "增量过程同步总数: 0" + "\n"
+    //          + "基表同步数据效率: 0 rec/s" + "\n"
+    //          + "基表写入失败总数: 0" + "\n"
+    //        )
+    //        fw.close()
+    //        // 清空数组
+    //        tabName.clear()
+    //        currentTs.clear()
+    //      }
   }
   ssc.start()
   ssc.awaitTermination()
