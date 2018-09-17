@@ -52,7 +52,7 @@ object KafkaManager {
                                    mem: String): InputDStream[ConsumerRecord[String, String]] = {
     mem match {
       case "zk" =>
-        println(s"[ ConsumerMain ] parameter is correct as $mem: zookeeper storage offsets")
+        println(s"[ KafkaManager ] parameter is correct as $mem: zookeeper storage offsets")
         val fromOffsets = zk.znodeDataGet("oggoffset")
         val kafkaStream = KafkaUtils.createDirectStream[String, String](
           ssc,

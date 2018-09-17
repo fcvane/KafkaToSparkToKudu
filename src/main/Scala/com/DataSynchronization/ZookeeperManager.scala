@@ -4,6 +4,7 @@ package com.DataSynchronization
   * Auther fcvane
   * Date 2018/8/30
   */
+
 import java.util.Properties
 
 import org.apache.kafka.common.TopicPartition
@@ -46,6 +47,7 @@ object ZookeeperManager {
     *
     * @param znode 数据节点
     * @param data  节点数据
+    * @return zk连接
     */
   def znodeCreate(znode: String, data: String) {
     println(s"[ ZookeeperManager ] zk create /$znode , $data")
@@ -58,6 +60,7 @@ object ZookeeperManager {
     *
     * @param znode 数据节点
     * @param data  节点数据
+    * @return 节点数据更新
     */
   def znodeDataSet(znode: String, data: String) {
     println(s"[ ZookeeperManager ] zk data set /$znode")
@@ -96,6 +99,7 @@ object ZookeeperManager {
     * @param znode     数据节点
     * @param partition Kafka分区
     * @param  data     节点数据 格式: 主题1,分区序号1,变化前的偏移量1,变化后的偏移量1;主题2,分区序号2,变化前的偏移量2,变化后的偏移量2,......
+    * @return 节点数据获取
     */
   def zkSaveOffset(znode: String, partition: String, data: String) {
     connect()

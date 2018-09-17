@@ -4,6 +4,7 @@ package com.DataSynchronization
   * Auther fcvane
   * Date 2018/8/30
   */
+
 import java.io.{File, FileWriter}
 import java.sql.Timestamp
 import java.text.{DecimalFormat, SimpleDateFormat}
@@ -71,7 +72,7 @@ object ConsumerMain extends App {
         println(s"[ ConsumerMain ] parameter is correct as ${args(0)}: local file storage offsets")
         var stream = kf.createDirectStreamReadOffset(ssc, kafkaParams, topics, args(0))
       case _ =>
-        println("[ ConsumerMain ] parameter error")
+        println("[ ConsumerMain ] parameter error , will use kafka own storage")
         var stream = kf.createDirectStream(ssc, kafkaParams, topics)
     }
   }
@@ -83,7 +84,7 @@ object ConsumerMain extends App {
   val timeFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
   val dayFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val total = ssc.sparkContext.longAccumulator("total")
-  val btName = new ArrayBuffer[String]()
+  val tabName = new ArrayBuffer[String]()
   val currentTs = new ArrayBuffer[String]()
 
   // 数据处理
@@ -91,28 +92,28 @@ object ConsumerMain extends App {
     (rdd, time) =>
       if (!rdd.isEmpty()) {
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-        val bt_starTime = timeFormat.format(new Date())
-        //  处理数据
+        val starTime = timeFormat.format(new Date())
+        // 处理数据
         rdd.foreachPartition {
           lines => {
             lines.foreach(line => {
               total.add(1)
               // kf.dataParseJson(kuduClient, line.value())
               val tup = kd.kuduConnect(line.value())
-              println(s"[ ConsumerMain ] table and current_timestamp: $tup")
-              btName += tup._1
-              currentTs += tup._2
+              println(s"[ ConsumerMain ] table and current_ts is : $tup")
+              tabName += tup._2
+              currentTs += tup._3
             })
           }
         }
         val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
         val bt_endTime = timeFormat.format(new Date())
-        println(s"[ ConsumerMain ] ${btName} , ${currentTs}")
-        println(s"[ ConsumerMain ] synchronous base table name traversal: ${btName.toList.distinct.mkString(",")}")
+        println(s"[ ConsumerMain ] ${tabName} , ${currentTs}")
+        println(s"[ ConsumerMain ] synchronous base table name traversal: ${tabName.toList.distinct.mkString(",")}")
         println(s"[ ConsumerMain ] current_ts data time: ${currentTs.toList.distinct.mkString(",")}")
 
-        //val logfile = "/tmp/topics/bt_log" + dayFormat.format(new Date()) + ".log"
-        val logfile = "./files/bt_log" + dayFormat.format(new Date()) + ".log"
+        //val logfile = "/tmp/topics/tbLog" + dayFormat.format(new Date()) + ".log"
+        val logfile = "./files/tbLog" + dayFormat.format(new Date()) + ".log"
         //        val configuration = new Configuration()
         //        val configPath = new Path(logfile)
         //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
@@ -122,7 +123,7 @@ object ConsumerMain extends App {
         //        } else {
         //          append = fileSystem.append(configPath)
         //        }
-        //        val td: Double = (Timestamp.valueOf(bt_endTime).getTime - Timestamp.valueOf(bt_starTime).getTime) / (1000)
+        //        val td: Double = (Timestamp.valueOf(bt_endTime).getTime - Timestamp.valueOf(starTime).getTime) / (1000)
         //        var result: String = null
         //        if (td == 0) {
         //          result = total.value.toString
@@ -131,9 +132,9 @@ object ConsumerMain extends App {
         //          result = df.format((total.value / td))
         //        }
         //        append.write(("\n"
-        //          + "基表同步启动时间: " + bt_starTime + "\n"
+        //          + "基表同步启动时间: " + starTime + "\n"
         //          + "基表同步结束时间: " + bt_endTime + "\n"
-        //          + "基表增量名称遍历: " + btName.toList.distinct.mkString(",") + "\n"
+        //          + "基表增量名称遍历: " + tabName.toList.distinct.mkString(",") + "\n"
         //          + "增量数据同步时间: " + rddTime + "\n"
         //          + "增量过程同步总数: " + total.value + "\n"
         //          + "基表同步数据效率: " + result + " rec/s" + "\n"
@@ -143,7 +144,7 @@ object ConsumerMain extends App {
 
         // 写本地文件系统
         val fw = new FileWriter(new File(logfile), true)
-        val td: Double = (Timestamp.valueOf(bt_endTime).getTime - Timestamp.valueOf(bt_starTime).getTime) / (1000)
+        val td: Double = (Timestamp.valueOf(bt_endTime).getTime - Timestamp.valueOf(starTime).getTime) / (1000)
         var result: String = null
         if (td == 0) {
           result = total.value.toString
@@ -152,19 +153,20 @@ object ConsumerMain extends App {
           result = df.format((total.value / td))
         }
         fw.write("\n"
-          + "基表同步启动时间: " + bt_starTime + "\n"
+          + "基表同步启动时间: " + starTime + "\n"
           + "基表同步结束时间: " + bt_endTime + "\n"
-          + "基表增量名称遍历: " + btName.toList.distinct.mkString(",") + "\n"
+          + "基表增量名称遍历: " + tabName.toList.distinct.mkString(",") + "\n"
           + "增量数据同步时间: " + rddTime + "\n"
           + "增量过程同步总数: " + total.value + "\n"
           + "基表同步数据效率: " + result + " rec/s" + "\n"
         )
+        // 关闭文件流
         fw.close()
-        // 清空数组
-        btName.clear()
+        //清空数组
+        tabName.clear()
         currentTs.clear()
 
-        //保存偏移量
+        // 保存偏移量
         // zk存储偏移量
         for (i <- 0 until offsetRanges.length) {
           println(s"[ ConsumerMain ] topic: ${offsetRanges(i).topic}; partition: ${offsetRanges(i).partition}; " +
@@ -176,26 +178,25 @@ object ConsumerMain extends App {
         // 关闭
         zk.zooKeeper.close()
         // 写本地文件系统 -清空
-        val fw1 = new FileWriter(new File("./files/offset.log"), false)
-        fw1.write("")
-        fw1.flush()
-        fw1.close()
+        val fwClear = new FileWriter(new File("./files/offset.log"), false)
+        fwClear.write("")
+        fwClear.flush()
+        fwClear.close()
         // 写本地文件系统 -追加
-        val fw2 = new FileWriter(new File("./files/offset.log"), true)
+        val fwAppend = new FileWriter(new File("./files/offset.log"), true)
         for (i <- 0 until offsetRanges.length) {
-          fw2.write(offsetRanges(i).topic + "," + offsetRanges(i).partition + "," + offsetRanges(i).fromOffset + "," + offsetRanges(i).untilOffset + "\n")
+          fwAppend.write(offsetRanges(i).topic + "," + offsetRanges(i).partition + "," + offsetRanges(i).fromOffset + "," + offsetRanges(i).untilOffset + "\n")
         }
-        fw2.close()
+        fwAppend.close()
         // 新版本Kafka自身保存
         stream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-        kuduClient.close()
       } else {
         println(s"[ ConsumerMain ] no data during this time period (${Seconds(5)})")
         //于HDFS上记录日志
         val nullTime = timeFormat.format(new Date())
         val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
-        //val logfile = "/tmp/topics/bt_log" + dayFormat.format(new Date()) + ".log"
-        val logfile = "./files/bt_log" + dayFormat.format(new Date()) + ".log"
+        //val logfile = "/tmp/topics/tbLog" + dayFormat.format(new Date()) + ".log"
+        val logfile = "./files/tbLog" + dayFormat.format(new Date()) + ".log"
         //        val configuration = new Configuration()
         //        val configPath = new Path(logfile)
         //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
@@ -228,9 +229,8 @@ object ConsumerMain extends App {
           + "基表写入失败总数: 0" + "\n"
         )
         fw.close()
-
         // 清空数组
-        btName.clear()
+        tabName.clear()
         currentTs.clear()
       }
   }
