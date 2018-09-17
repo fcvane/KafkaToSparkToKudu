@@ -82,7 +82,7 @@ object ConsumerMain extends App {
   }
 
   val timeFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-  val dayFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+  val dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
   val total = ssc.sparkContext.longAccumulator("total")
   val tabName = new ArrayBuffer[String]()
   val currentTs = new ArrayBuffer[String]()
@@ -112,8 +112,8 @@ object ConsumerMain extends App {
         println(s"[ ConsumerMain ] synchronous base table name traversal: ${tabName.toList.distinct.mkString(",")}")
         println(s"[ ConsumerMain ] current_ts data time: ${currentTs.toList.distinct.mkString(",")}")
 
-        //val logfile = "/tmp/topics/tbLog" + dayFormat.format(new Date()) + ".log"
-        val logfile = "./files/tbLog" + dayFormat.format(new Date()) + ".log"
+        //val logfile = "/tmp/topics/tbLog" + dateFormat.format(new Date()) + ".log"
+        val logfile = "./files/tbLog" + dateFormat.format(new Date()) + ".log"
         //        val configuration = new Configuration()
         //        val configPath = new Path(logfile)
         //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
@@ -195,8 +195,8 @@ object ConsumerMain extends App {
         //于HDFS上记录日志
         val nullTime = timeFormat.format(new Date())
         val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
-        //val logfile = "/tmp/topics/tbLog" + dayFormat.format(new Date()) + ".log"
-        val logfile = "./files/tbLog" + dayFormat.format(new Date()) + ".log"
+        //val logfile = "/tmp/topics/tbLog" + dateFormat.format(new Date()) + ".log"
+        val logfile = "./files/tbLog" + dateFormat.format(new Date()) + ".log"
         //        val configuration = new Configuration()
         //        val configPath = new Path(logfile)
         //        val fileSystem: FileSystem = configPath.getFileSystem(configuration)
