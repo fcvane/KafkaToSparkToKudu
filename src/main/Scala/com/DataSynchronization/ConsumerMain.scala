@@ -42,20 +42,19 @@ object ConsumerMain extends App {
   val kuduClient = new KuduClient.KuduClientBuilder(properties.getProperty("kudu.master")).build()
   val topics = properties.getProperty("kafka.topic").split(",").toSet
   val kafkaBroker = properties.getProperty("kafka.broker")
-  val group = "test"
   // 消费者配置
-  val kafkaParams = Map(
+  val kafkaParams = Map[String,Object](
     // 用于初始化链接到集群的地址
     "bootstrap.servers" -> kafkaBroker,
     "key.deserializer" -> classOf[StringDeserializer],
     "value.deserializer" -> classOf[StringDeserializer],
     // 用于标识这个消费者属于哪个消费团体
-    "group.id" -> group,
+    "group.id" -> "test",
     // 如果没有初始化偏移量或者当前的偏移量不存在任何服务器上，可以使用这个配置属性
     // 从最新的开始消费
     "auto.offset.reset" -> "latest",
     // 如果是true，则这个消费者的偏移量会在后台自动提交
-    "enable.auto.commit" -> (false: java.lang.Boolean)
+    "enable.auto.commit" ->(false:java.lang.Boolean)
   )
   // 参数
   // 读取offset
@@ -90,6 +89,7 @@ object ConsumerMain extends App {
   // 数据处理
   stream.foreachRDD {
     (rdd, time) =>
+//      println(rdd, time, "------------------------", rdd.isEmpty())
       if (!rdd.isEmpty()) {
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         val starTime = timeFormat.format(new Date())
@@ -98,7 +98,8 @@ object ConsumerMain extends App {
           lines => {
             lines.foreach(line => {
               total.add(1)
-              // kf.dataParseJson(kuduClient, line.value())
+//              println(line.value(),"-------------------------")
+//              kf.dataParseJson(kuduClient, line.value())
               val tup = kd.kuduConnect(line.value())
               println(s"[ ConsumerMain ] table and current_ts is : ${tup._2},${tup._3}")
               tabName += tup._2
@@ -161,7 +162,7 @@ object ConsumerMain extends App {
         // 写HDFS
         //         LoggerManager.WHadoopDistributedFileSystem(nullTime, nullTime, rddTime, nullName, total)
         // 写本地文件系统
-        LoggerManager.WLocalFileSystem(nullTime, nullTime, rddTime, nullName, total)
+        //        LoggerManager.WLocalFileSystem(nullTime, nullTime, rddTime, nullName, total)
         println(s"[ ConsumerMain ] write file system finished !")
         // 清空数组
         tabName.clear()

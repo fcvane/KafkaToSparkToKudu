@@ -84,16 +84,17 @@ object KafkaManager {
     */
   def dataParseJson(kuduClient: KuduClient, line: String): Unit = {
     val json = JSON.parseObject(line)
+    println("111111", json)
     //返回字符串成员：由于首次消费将获取表结构信息，需要过滤处理
     //返回字符串成员
     val tableName = json.getString("table")
     //匹配判断
     tableName match {
       case null =>
-        //        println("2222")
+        //                println("2222")
         break
       case _ =>
-        //        println("1111")
+        //                println("1111")
         println(kuduClient.tableExists(tableName))
         val kuduTable = kuduClient.openTable(json.getString("table").split("\\.")(1).toLowerCase())
         val schema = kuduTable.getSchema
