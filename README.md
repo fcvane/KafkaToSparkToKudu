@@ -21,7 +21,6 @@ get /oggoffset/0
 spark-submit \
  --master local[*] \
  --class ConsumerMain \
- #--files /home/kafka.keystore,/home/kafka.truststore \
  /home/ConsumerMain.jar zk
  
 ###2.本地文件存储
@@ -33,7 +32,6 @@ spark-submit \
 spark-submit \
  --master local[*] \
  --class ConsumerMain \
-# --files /home/kafka.keystore,/home/kafka.truststore \
  /home/ConsumerMain.jar local
  
 ###3.新版本Kafka(0.10及以上)自身存储
@@ -41,11 +39,9 @@ spark-submit \
 自身存储不需要专门编写读取Kafka offset的方法
  
 ####调用方式(不带参数)：
-
  spark-submit \
  --master local[*] \
  --class ConsumerMain \
-# --files /home/kafka.keystore,/home/kafka.truststore \
  --conf spark.streaming.stopGracefullyOnShutdown=true
  --conf spark.streaming.backpressure.enabled=true
  --conf spark.streaming.backpressure.initialRate=5000
@@ -57,5 +53,6 @@ spark-submit \
  ###仅供参考
  
  现阶段只是模板，暂未实现正常的参数调用和配置实例化。
+  --files /home/kafka.keystore,/home/kafka.truststore  Kafka SSL认证
  
  
