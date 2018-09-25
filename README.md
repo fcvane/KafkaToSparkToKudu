@@ -21,7 +21,7 @@ get /oggoffset/0
 spark-submit \
  --master local[*] \
  --class ConsumerMain \
- --files /home/kafka.keystore,/home/kafka.truststore \
+ #--files /home/kafka.keystore,/home/kafka.truststore \
  /home/ConsumerMain.jar zk
  
 ###2.本地文件存储
@@ -33,7 +33,7 @@ spark-submit \
 spark-submit \
  --master local[*] \
  --class ConsumerMain \
- --files /home/kafka.keystore,/home/kafka.truststore \
+# --files /home/kafka.keystore,/home/kafka.truststore \
  /home/ConsumerMain.jar local
  
 ###3.新版本Kafka(0.10及以上)自身存储
@@ -45,9 +45,13 @@ spark-submit \
  spark-submit \
  --master local[*] \
  --class ConsumerMain \
- --files /home/kafka.keystore,/home/kafka.truststore \
+# --files /home/kafka.keystore,/home/kafka.truststore \
+ --conf spark.streaming.stopGracefullyOnShutdown=true
+ --conf spark.streaming.backpressure.enabled=true
+ --conf spark.streaming.backpressure.initialRate=5000
+ --conf spark.streaming.kafka.maxRatePerPartition=2000
  /home/ConsumerMain.jar
- 
+
  #后续提升
  
  ###仅供参考
