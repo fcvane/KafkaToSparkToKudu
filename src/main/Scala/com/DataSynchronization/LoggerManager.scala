@@ -2,9 +2,9 @@ package com.DataSynchronization
 
 import java.io.{File, FileWriter}
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.DataSynchronization.ConsumerMain.dateFormat
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FSDataOutputStream, FileSystem, Path}
 
@@ -23,6 +23,8 @@ object LoggerManager {
     *
     * 日志管理
     */
+
+  val dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
 
   /**
     * 日志的本地文件存储
@@ -96,9 +98,5 @@ object LoggerManager {
       ).getBytes("UTF-8"))
     fsw.close()
     fileSystem.close()
-  }
-
-  def main(args: Array[String]): Unit = {
-
   }
 }
