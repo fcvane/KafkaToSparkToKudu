@@ -32,6 +32,7 @@ object ConsumerMain extends App {
   val conf = new SparkConf().setMaster("local[2]").setAppName("test")
   val ssc = new StreamingContext(conf, spark.streaming.Seconds(5))
   // spark参数信息(可在spark-submit执行命令行添加)
+  conf.set("spark.default.parallelism", "500") //调整并发数
   //  conf.set("spark.streaming.stopGracefullyOnShutdown", "true") //优雅的关闭
   //  conf.set("spark.streaming.backpressure.enabled", "true") //激活削峰功能
   //  conf.set("spark.streaming.backpressure.initialRate", "5000") //第一次读取的最大数据值
@@ -43,7 +44,7 @@ object ConsumerMain extends App {
   val topics = properties.getProperty("kafka.topic").split(",").toSet
   val kafkaBroker = properties.getProperty("kafka.broker")
   // 消费者配置
-  val kafkaParams = Map[String,Object](
+  val kafkaParams = Map[String, Object](
     // 用于初始化链接到集群的地址
     "bootstrap.servers" -> kafkaBroker,
     "key.deserializer" -> classOf[StringDeserializer],
@@ -54,7 +55,7 @@ object ConsumerMain extends App {
     // 从最新的开始消费
     "auto.offset.reset" -> "latest",
     // 如果是true，则这个消费者的偏移量会在后台自动提交
-    "enable.auto.commit" ->(false:java.lang.Boolean)
+    "enable.auto.commit" -> (false: java.lang.Boolean)
   )
   // 参数
   // 读取offset
@@ -89,7 +90,7 @@ object ConsumerMain extends App {
   // 数据处理
   stream.foreachRDD {
     (rdd, time) =>
-//      println(rdd, time, "------------------------", rdd.isEmpty())
+      //      println(rdd, time, "------------------------", rdd.isEmpty())
       if (!rdd.isEmpty()) {
         val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
         val starTime = timeFormat.format(new Date())
@@ -98,8 +99,8 @@ object ConsumerMain extends App {
           lines => {
             lines.foreach(line => {
               total.add(1)
-//              println(line.value(),"-------------------------")
-//              kf.dataParseJson(kuduClient, line.value())
+              //              println(line.value(),"-------------------------")
+              //              kf.dataParseJson(kuduClient, line.value())
               val tup = kd.kuduConnect(line.value())
               println(s"[ ConsumerMain ] table and current_ts is : ${tup._2},${tup._3}")
               tabName += tup._2
