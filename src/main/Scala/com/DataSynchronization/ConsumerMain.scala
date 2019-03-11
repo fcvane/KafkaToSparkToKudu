@@ -110,7 +110,7 @@ object ConsumerMain extends App {
         }
         val rddTime = new Timestamp(time.milliseconds).toString.split("\\.")(0)
         val endTime = timeFormat.format(new Date())
-        println(s"[ ConsumerMain ] ${tabName} , ${currentTs}")
+        println(s"[ ConsumerMain ] " + tabName.mkString(","), currentTs.mkString(","))
         println(s"[ ConsumerMain ] synchronous base table name traversal: ${tabName.toList.distinct.mkString(",")}")
         println(s"[ ConsumerMain ] current_ts data time: ${currentTs.toList.distinct.mkString(",")}")
         println(s"[ ConsumerMain ] start writing file system ...")
@@ -166,8 +166,8 @@ object ConsumerMain extends App {
         //        LoggerManager.WLocalFileSystem(nullTime, nullTime, rddTime, nullName, total)
         println(s"[ ConsumerMain ] write file system finished !")
         // 清空数组
-        tabName.clear()
-        currentTs.clear()
+        //        tabName.clear()
+        //        currentTs.clear()
       }
   }
   ssc.start()

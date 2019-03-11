@@ -75,7 +75,7 @@ object KuduManager {
           for (i <- 0 until schema.getColumns.size()) {
             val colSchema = schema.getColumnByIndex(i)
             val colName = colSchema.getName.toUpperCase
-            println("[ KuduManager ] " + data.get(colName))
+            //            println("[ KuduManager ] " + data.get(colName))
             val colType: Type = colSchema.getType
             if (data.get(colName) != null) {
               // 添加其他类型操作
