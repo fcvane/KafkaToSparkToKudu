@@ -71,42 +71,43 @@ object KuduManager {
           val schema = kuduTable.getSchema
           val upsert = kuduTable.newUpsert
           val row = upsert.getRow
-          // 字段赋值
-          for (i <- 0 until schema.getColumns.size()) {
-            val colSchema = schema.getColumnByIndex(i)
-            val colName = colSchema.getName.toUpperCase
-            //            println("[ KuduManager ] " + data.get(colName))
-            val colType: Type = colSchema.getType
-            if (data.get(colName) != null) {
-              // 添加其他类型操作
-              colType match {
-                //BINARY
-                case Type.BINARY =>
-                  row.addString(colName.toLowerCase(), data.get(colName).toString)
-                // 字符
-                case Type.STRING =>
-                  row.addString(colName.toLowerCase(), data.get(colName).toString)
-                // BOOL
-                case Type.BOOL =>
-                  row.addByte(colName.toLowerCase(), data.get(colName).toString.toByte)
-                // Double
-                case Type.DOUBLE =>
-                  row.addDouble(colName.toLowerCase(), data.get(colName).toString.toDouble)
-                // Float
-                case Type.FLOAT =>
-                  row.addFloat(colName.toLowerCase(), data.get(colName).toString.toFloat)
-                // 整型 && UNIXTIME_MICROS
-                case _ =>
-                  row.addInt(colName.toLowerCase(), data.get(colName).toString.toInt)
-              }
-            }
-          }
+          // 提前处理删除状态的数据，避免重复处理无用的删除记录 --fcvane 20190827
           // 状态 delete_state 字段赋值:物理删除改逻辑删除
           opType.toString match {
             case "D" =>
               row.addString("delete_state", "1")
             case _ =>
               row.addString("delete_state", "0")
+              // 字段赋值
+              for (i <- 0 until schema.getColumns.size()) {
+                val colSchema = schema.getColumnByIndex(i)
+                val colName = colSchema.getName.toUpperCase
+                //            println("[ KuduManager ] " + data.get(colName))
+                val colType: Type = colSchema.getType
+                if (data.get(colName) != null) {
+                  // 添加其他类型操作
+                  colType match {
+                    //BINARY
+                    case Type.BINARY =>
+                      row.addString(colName.toLowerCase(), data.get(colName).toString)
+                    // 字符
+                    case Type.STRING =>
+                      row.addString(colName.toLowerCase(), data.get(colName).toString)
+                    // BOOL
+                    case Type.BOOL =>
+                      row.addByte(colName.toLowerCase(), data.get(colName).toString.toByte)
+                    // Double
+                    case Type.DOUBLE =>
+                      row.addDouble(colName.toLowerCase(), data.get(colName).toString.toDouble)
+                    // Float
+                    case Type.FLOAT =>
+                      row.addFloat(colName.toLowerCase(), data.get(colName).toString.toFloat)
+                    // 整型 && UNIXTIME_MICROS
+                    case _ =>
+                      row.addInt(colName.toLowerCase(), data.get(colName).toString.toInt)
+                  }
+                }
+              }
           }
           // 同步处理时间
           row.addString("time_stamp", date)

@@ -20,7 +20,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import scala.collection.mutable.ArrayBuffer
 
 
-class ConsumerMain {
+class   ConsumerMain {
 
 }
 
